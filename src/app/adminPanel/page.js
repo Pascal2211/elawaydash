@@ -6,7 +6,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { doc, getDoc, getDocs, collection } from "firebase/firestore";
 
-export default function AdminPage() {
+export default function Adminpage() {
     const [loading, setLoading] = useState(true);
     const [authorized, setAuthorized] = useState(false);
     const [userData, setUserData] = useState(null);
