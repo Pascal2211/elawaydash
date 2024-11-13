@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { onSnapshot, doc } from "firebase/firestore";
 import { auth, db } from "@/firebase/firebase";
 
-export default function notAuthorized() {
+export default function NotAuthorized() {
     const [userData, setUserData] = useState(null)
     const router = useRouter();
 

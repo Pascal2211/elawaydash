@@ -1,6 +1,6 @@
 "use client"
 
-export default function teamView(){
+export default function TeamView(){
     return(
         <div className="h-full w-full bg-correctBlue">
             <h1 className="text-2xl text-backgroundWhite flex justify-center align-middle">Dette er team view. Den skal være like stor som 

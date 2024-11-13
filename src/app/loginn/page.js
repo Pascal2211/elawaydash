@@ -3,7 +3,7 @@ import { loginWithEmailAndPassword } from "@/firebase/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function loginn(){
+export default function Loginn(){
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false)
