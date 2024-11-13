@@ -25,3 +25,48 @@ body {
     text-wrap: balance;
   }
 }
+
+@keyframes jump {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-jump {
+  animation: jump 0.5s ease;
+}
+
+.outer-shape {
+  width: 600px; /* Set the width of the main container */
+  height: 300px; /* Set the height of the main container */
+  background-color: #a2c5d4; /* Background color */
+  border-radius: 15px; /* Rounded corners for the main shape */
+  position: relative;
+}
+
+.inner-shape {
+  width: 200px; /* Width of the smaller attached section */
+  height: 150px; /* Height of the smaller attached section */
+  background-color: #a2c5d4; /* Same background color */
+  border-radius: 15px 0 0 15px; /* Rounded corners only on the left side */
+  position: absolute;
+  top: 0; /* Align at the top */
+  left: -200px; /* Move the inner shape to the left */
+}
+
+/* Hide scrollbar for Chrome, Safari, and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge, and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
