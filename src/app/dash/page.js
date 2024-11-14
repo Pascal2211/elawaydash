@@ -10,10 +10,12 @@ import navbar from '../components/navbar';
 export default function Dashboard() {
   const [userData, setUserData] = useState(null);
   const [selectedObjective, setSelectedObjective] = useState(null);
+  const [expandValues, setExpandValues] = useState({});
+  const [expandedObjectives, setExpandedObjectives] = useState({});
+  const [expandedInitiatives, setExpandedInitiatives] = useState({});
 
   const [loading, setLoading] = useState(true);
   const [showSingleValueInput, setShowSingleValueInput] = useState(false); // To show single value input field
-  const [isCreatingObjective, setIsCreatingObjective] = useState(false);
   const [isCreatingRow, setIsCreatingRow] = useState(false); // New state for creating a row
   const [superAdmin, setSuperAdmin] = useState(false);
   const [showOverlayButtons, setShowOverlayButtons] = useState(false);
@@ -86,6 +88,33 @@ export default function Dashboard() {
   const handleToggleCreateRow = () => {
     setIsCreatingRow(!isCreatingRow);
     setShowOverlayButtons(false);
+  };
+
+  const toggleObjective = (objIndex) => {
+    setExpandedObjectives((prev) => ({
+      ...prev,
+      [objIndex]: !prev[objIndex]
+    }));
+  };
+
+  const toggleInitiative = (objIndex, initIndex) => {
+    setExpandedInitiatives((prev) => ({
+      ...prev,
+      [objIndex]: {
+        ...prev[objIndex],
+        [initIndex]: !prev[objIndex]?.[initIndex] // Toggle the specific initiative within the objective
+      }
+    }));
+  };
+
+  const toggleValues = (objIndex, initIndex) => {
+    setExpandValues((prev) => ({
+      ...prev,
+      [objIndex]: {
+        ...(prev[objIndex] || {}), // Ensure objIndex is an object
+        [initIndex]: !prev[objIndex]?.[initIndex] // Toggle the specific initIndex
+      }
+    }));
   };
 
   const handleBack = () => {
@@ -804,22 +833,72 @@ export default function Dashboard() {
                       {moduleType === "objective" && objective.objectivesTwo ? (
                         // Render Objective Type
                         <div>
-                          {objective.objectivesTwo.map((obj, objIndex) => (
-                            <div key={objIndex} className="mb-4">
-                              <h2 className="text-lg font-bold text-correctBlue">{obj.objectiveName}</h2>
-                              {obj.initiatives.map((initiative, initIndex) => (
-                                <div key={initIndex} className="p-4 rounded-lg bg-textBlue mt-2 text-white">
-                                  <p>Initiative Name: {initiative.initiativeName}</p>
-                                  <p>Key Result: {initiative.keyResult}</p>
-                                  <p>Baseline: {initiative.baseline}</p>
-                                  <p>Current: {initiative.current}</p>
-                                  <p>Target: {initiative.target}</p>
-                                  <p>Comment: {initiative.comment}</p>
-                                  <p>Owner: {initiative.owner}</p>
+                          {objective.objectivesTwo
+                            .filter((obj) => obj.objectiveName !== "moduleName")
+                            .map((obj, objIndex) => (
+                              <div key={objIndex} className="mb-4">
+                                {/* Objective Header with Expand Button */}
+                                <div className="text-lg text-white bg-kindaBlue h-12 w-full flex items-center justify-center">
+                                  <button
+                                    onClick={() => toggleObjective(objIndex)}
+                                    className="bg-specialWhite text-correctBlue h-4 w-4 flex items-center justify-center mr-2"
+                                  >
+                                    {expandedObjectives[objIndex] ? "-" : "+"}
+                                  </button>
+                                  <h1 className="text-white text-center p-4">{obj.objectiveName}</h1>
                                 </div>
-                              ))}
-                            </div>
-                          ))}
+
+                                {/* Display Initiatives if Objective is Expanded */}
+                                {expandedObjectives[objIndex] && (
+                                  <div className="pb-4">
+                                    {obj.initiatives.map((initiative, initIndex) => (
+                                      <div className="pb-2 pt-4" key={initIndex}>
+                                        {/* Initiative Header with Expand Button */}
+                                        <div className="text-lg text-white bg-textBlue h-10 w-full flex items-center justify-center space-x-2">
+                                          <button
+                                            onClick={() => toggleInitiative(objIndex, initIndex)}
+                                            className="bg-specialWhite text-correctBlue h-3 w-3 flex items-center justify-center mr-2"
+                                          >
+                                            {expandedInitiatives[objIndex]?.[initIndex] ? "-" : "+"}
+                                          </button>
+                                          <h2>{initiative.initiativeName}</h2>
+                                        </div>
+
+                                        {/* Display Initiative Details if Expanded */}
+                                        {expandedInitiatives[objIndex]?.[initIndex] && (
+                                          <div className="grid grid-cols-6 gap-4 mt-2">
+                                            <div>
+                                              <p className="text-black flex justify-center">Key Result</p>
+                                              <div className="bg-objectivBlue text-white p-2 rounded-md text-center">{initiative.keyResult}</div>
+                                            </div>
+                                            <div>
+                                              <p className="text-black flex justify-center">Baseline</p>
+                                              <div className="bg-objectivBlue text-white p-2 rounded-md text-center">{initiative.baseline}</div>
+                                            </div>
+                                            <div>
+                                              <p className="text-black flex justify-center">Current</p>
+                                              <div className="bg-objectivBlue text-white p-2 rounded-md text-center">{initiative.current}</div>
+                                            </div>
+                                            <div>
+                                              <p className="text-black flex justify-center">Target</p>
+                                              <div className="bg-objectivBlue text-white p-2 rounded-md text-center">{initiative.target}</div>
+                                            </div>
+                                            <div>
+                                              <p className="text-black flex justify-center">Comment</p>
+                                              <div className="bg-objectivBlue text-white p-2 rounded-md text-center">{initiative.comment}</div>
+                                            </div>
+                                            <div>
+                                              <p className="text-black flex justify-center">Owner</p>
+                                              <div className="bg-objectivBlue text-white p-2 rounded-md text-center">{initiative.owner}</div>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                         </div>
                       ) : moduleType === "rows" && objective.rows ? (
                         // Render Rows Type
