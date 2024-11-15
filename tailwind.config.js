@@ -18,6 +18,7 @@ module.exports = {
         regretRed: "#E77A7A",
         kindaBlue: "#2E6877",
         objectivBlue: "#2E6877",
+        boringGrey: "#81969C"
       },
     },
   },

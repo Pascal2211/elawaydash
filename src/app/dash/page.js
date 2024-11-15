@@ -2,7 +2,7 @@
 
 import { auth, db } from '@/firebase/firebase';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteField } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteField, arrayUnion } from 'firebase/firestore';
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from 'react';
 import navbar from '../components/navbar';
@@ -31,9 +31,10 @@ export default function Dashboard() {
   const [objectives, setObjectives] = useState([]);
   const [singleValues, setSingleValues] = useState([]);
   const [newRows, setNewRows] = useState([]);
-  const [addingKey, setAddingKey] = useState({});
   const [collapsedObjectives, setCollapsedObjectives] = useState({});
   const [deleteMode, setDeleteMode] = useState({});
+  const [addingValue, setAddingValue] = useState({});
+  const [newSingleValues, setNewSingleValues] = useState({});
 
   const [moduleName, setModuleName] = useState("");
   const [moduleNameError, setModuleNameError] = useState(false);
@@ -296,16 +297,6 @@ export default function Dashboard() {
     setNewRows(updatedRows);
   };
 
-  const handleToggleAddKey = (objectiveId) => {
-    if (!superAdmin) {
-      notifyNoAccess();
-      return;
-    }
-    setAddingKey((prevState) => ({
-      ...prevState,
-      [objectiveId]: !prevState[objectiveId],
-    }));
-  };
 
   const handleObjectiveClick = (id) => {
     setSelectedObjective(id);
@@ -317,23 +308,16 @@ export default function Dashboard() {
       return;
     }
 
-    // Prepare data to be saved to Firestore
-    const valuesObject = singleValues.reduce((acc, item) => {
-      acc[item.key] = item.value;
-      return acc;
-    }, {});
-
     const newObjective = {
       module: "single",
-      name: newObjectiveName,
-      values: valuesObject, // All single values combined in one object
+      values: singleValues, // All single values combined in one object
     };
 
     try {
       await setDoc(doc(db, "objectives", newObjectiveName), newObjective);
 
       // Reset fields after saving
-      setNewObjectiveName("");
+      setNewObjectiveName("");  // Clear the objective name field
       setSingleValues([]);
       setIsCreatingSingleValue(false);
       alert("Objective saved successfully!");
@@ -343,22 +327,33 @@ export default function Dashboard() {
     }
   };
 
-  const handleAddSingleValue = () => {
-    if (newSingleValueKey.trim() && newSingleValue.trim()) {
-      // Add the new key-value pair to the objectives array
-      setSingleValues((prevObjectives) => [
-        ...prevObjectives,
-        { key: newSingleValueKey, value: newSingleValue }
-      ]);
+  // const handleAddSingleValue = () => {
+  //   if (newSingleValueKey.trim() && newSingleValue.trim()) {
+  //     // Add the new key-value pair to the objectives array
+  //     setSingleValues((prevObjectives) => [
+  //       ...prevObjectives,
+  //       { key: newSingleValueKey, value: newSingleValue }
+  //     ]);
 
-      // Clear the input fields after adding the value
-      setNewSingleValueKey("");
+  //     // Clear the input fields after adding the value
+  //     setNewSingleValueKey("");
+  //     setNewSingleValue("");
+  //   } else {
+  //     alert("Please provide both a field name and a value.");
+  //   }
+  // };
+
+  const handleAddSingleValue = () => {
+    if (newSingleValue.trim()) {
+      // Add the new value directly to the singleValues array
+      setSingleValues((prevValues) => [...prevValues, newSingleValue]);
+
+      // Clear the input field after adding the value
       setNewSingleValue("");
     } else {
-      alert("Please provide both a field name and a value.");
+      alert("Please provide a value.");
     }
   };
-
 
   const handleCreateObjective = async () => {
     if (!newObjectiveName.trim()) {
@@ -394,36 +389,51 @@ export default function Dashboard() {
     setShowSingleValueInput(!showSingleValueInput);
   };
 
-  const handleAddKeyValue = async (objectiveId) => {
-    if (!superAdmin) {
-      notifyNoAccess();
-      return;
-    }
+  // Function to handle input change for adding a single value
+  const handleSingleValueChange = (objectiveId, value) => {
+    setNewSingleValues((prev) => ({ ...prev, [objectiveId]: value }));
+  };
 
-    if (!newKey || !newValue) {
-      alert('Please provide a key and its value');
+  const handleToggleAddValue = (objectiveId) => {
+    setAddingValue((prev) => ({
+      ...prev,
+      [objectiveId]: !prev[objectiveId],
+    }));
+    setNewSingleValues((prev) => ({
+      ...prev,
+      [objectiveId]: "", // Reset the input when toggling
+    }));
+  };
+
+  // Add the new value to Firestore and update the state
+  const handleAddValueToObjective = async (objectiveId) => {
+    const valueToAdd = newSingleValues[objectiveId]?.trim();
+    if (!valueToAdd) {
+      alert("Please enter a value.");
       return;
     }
 
     try {
       const objectiveRef = doc(db, "objectives", objectiveId);
       await updateDoc(objectiveRef, {
-        [newKey]: newValue
+        values: arrayUnion(valueToAdd),
       });
 
-      const updatedObjectives = objectives.map((objective) => {
-        if (objective.id === objectiveId) {
-          return { ...objective, [newKey]: newValue };
-        }
-        return objective;
-      });
-      setObjectives(updatedObjectives);
-      setNewKey('');
-      setNewValue('');
-      setAddingKey({ ...addingKey, [objectiveId]: false });
+      // Update the local objectives state to reflect the new value
+      setObjectives((prevObjectives) =>
+        prevObjectives.map((objective) =>
+          objective.id === objectiveId
+            ? { ...objective, values: [...(objective.values || []), valueToAdd] }
+            : objective
+        )
+      );
+
+      // Reset input and close the input field
+      setAddingValue((prev) => ({ ...prev, [objectiveId]: false }));
+      setNewSingleValues((prev) => ({ ...prev, [objectiveId]: "" }));
     } catch (error) {
-      console.error("Error updating ");
-      alert("An error occurred.");
+      console.error("Error adding value:", error);
+      alert("An error occurred while adding the value.");
     }
   };
 
@@ -676,14 +686,6 @@ export default function Dashboard() {
                 className="border border-gray-300 p-2 w-full rounded text-correctBlue mb-4"
               />
 
-              {/* Field Name Input */}
-              <input
-                type="text"
-                value={newSingleValueKey}
-                onChange={(e) => setNewSingleValueKey(e.target.value)}
-                placeholder="Field name"
-                className="border border-coolBlue p-2 w-full rounded text-correctBlue mb-4"
-              />
 
               {/* Field Value Input */}
               <input
@@ -707,10 +709,9 @@ export default function Dashboard() {
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-correctBlue mb-2">Added Values</h3>
                   <ul>
-                    {singleValues.map((item, index) => (
-                      <li key={index} className="flex justify-between items-center mb-2 p-2 bg-textBlue rounded-md">
-                        <span className="text-specialWhite font-medium">{item.key}</span>
-                        <span className="text-specialWhite">{item.value}</span>
+                    {singleValues.map((value, index) => (
+                      <li key={index} className="flex justify-center items-center mb-2 p-2 bg-textBlue rounded-md">
+                        <span className="text-correctBlue text-center">{value}</span>
                       </li>
                     ))}
                   </ul>
@@ -922,16 +923,60 @@ export default function Dashboard() {
                             </div>
                           )}
                         </div>
-                      ) : moduleType === "single" && objective.values ? (
-                        // Render Single Type with Key-Value Pairs
+                      ) : moduleType === "single" && Array.isArray(objective.values) ? (
+                        // Render Single Type with List of Values
                         <div className="text-white rounded-lg">
                           <div className="space-y-2">
-                            {Object.entries(objective.values).map(([key, value], index) => (
-                              <div key={index} className="flex justify-between bg-textBlue p-2 rounded-lg items-center">
-                                <span className="font-medium text-specialWhite">{key}</span>
-                                <span className="text-specialWhite">{value}</span>
+                            {objective.values.map((value, index) => (
+                              <div key={index} className="flex justify-center items-center bg-textBlue p-2 rounded-sm">
+                                <span className="text-black text-lg text-center">{value}</span>
                               </div>
                             ))}
+                          </div>
+
+                          {/* Add Value Button and Input for "single" type */}
+                          <div className="mt-4">
+                            {addingValue[objective.id] ? (
+                              <>
+                                <input
+                                  type="text"
+                                  placeholder="Enter new value"
+                                  value={newSingleValues[objective.id] || ""}
+                                  onChange={(e) => handleSingleValueChange(objective.id, e.target.value)}
+                                  className="flex justify-center items-center bg-textBlue p-2 rounded-lg w-full text-correctBlue"
+                                />
+                                <button
+                                  onClick={() => handleAddValueToObjective(objective.id)}
+                                  className="bg-correctBlue text-specialWhite h-10 w-full rounded"
+                                >
+                                  Confirm
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                              <div className='flex space-x-4 pr-8 pl-8'>
+                                  <button
+                                  
+                                    className='bg-regretRed text-specialWhite h-10 w-full rounded-sm'
+                                    >
+                                    Delete a value
+                                  </button>
+                                  <button
+                                  
+                                    className='bg-boringGrey text-specialWhite h-10 w-full rounded-sm'
+                                    >
+                                    X
+                                  </button>
+                                  <button
+                                    onClick={() => handleToggleAddValue(objective.id)}
+                                    className="bg-coolBlue text-specialWhite h-10 w-full rounded-sm"
+                                    >
+                                    Add Value
+                                  </button>
+                                </div>
+                              </>
+                              
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -941,7 +986,7 @@ export default function Dashboard() {
                       {/* Display additional key-value pairs if needed */}
                       {Object.entries(objective).map(([key, value]) =>
                         key !== "id" && key !== "rows" && key !== "objectivesTwo" && key !== "module" && key !== "values" && (
-                          <div key={key} className="bg-textBlue p-4 mb-4 rounded-lg border border-gray-300 flex items-center justify-between">
+                          <div key={key} className="bg-textBlue p-4 mb-4 rounded-lg border border-gray-300 flex justify-center items-center">
                             <strong className="text-black">{key}:</strong>
                             <span className="text-black ml-2">{value}</span>
                           </div>
