@@ -44,6 +44,7 @@ export default function Home() {
         email: user.email,  
         adminRights: false, 
         superAdmin: false,
+        userId: user.uid,
       });
 
       const userFullName = `${fornavn} ${etternavn}`;

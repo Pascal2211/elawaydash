@@ -1,3 +1,5 @@
+const { transform } = require('next/dist/build/swc');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -18,7 +20,16 @@ module.exports = {
         regretRed: "#E77A7A",
         kindaBlue: "#2E6877",
         objectivBlue: "#2E6877",
-        boringGrey: "#81969C"
+        boringGrey: "#81969C",
+      },
+      animation: {
+        "loop-scroll": "loop-scroll 20s linear infinite",
+      },
+      keyframes: {
+        "loop-scroll": {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-100%)" },
+        },
       },
     },
   },

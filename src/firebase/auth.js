@@ -1,6 +1,7 @@
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 
+// Register user with email and password
 export const registerWithEmailAndPassword = async (email, password) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -11,6 +12,7 @@ export const registerWithEmailAndPassword = async (email, password) => {
   }
 };
 
+// Log in user with email and password
 export const loginWithEmailAndPassword = async (email, password) => {
     try{
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -21,3 +23,13 @@ export const loginWithEmailAndPassword = async (email, password) => {
     }
 }
 
+// Log out the current user
+export const logout = async () => {
+  try {
+    await signOut(auth);
+    console.log("User logged out successfully");
+  } catch (error) {
+    console.error("Error during logout:", error);
+    throw error;
+  }
+};

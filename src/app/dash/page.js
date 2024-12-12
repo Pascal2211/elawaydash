@@ -487,7 +487,7 @@ export default function Dashboard() {
 
         setLoading(false);
       } else {
-        router.push("/login");
+        router.push("/loginn");
       }
     });
     return () => unsubscribe();
@@ -501,33 +501,45 @@ export default function Dashboard() {
   const moveTeam = () => { router.push('/') }
   const moveTask = () => { router.push('/') }
   const moveSettings = () => { router.push('/') }
-  const moveToProfile = () => { router.push('/') }
+  const moveToProfile = () => { router.push('/usrProfile') }
 
   return (
     <div className="h-screen w-screen bg-backgroundWhite">
       <div className="grid grid-cols-[auto,1fr] gap-6 p-8 h-full">
         <div className="flex flex-col space-y-6">
-          <div className="bg-kindaBlue flex items-center justify-center h-20 w-96 rounded-lg p-4">
+          <button className="bg-kindaBlue flex items-center justify-center h-20 w-96 rounded-lg p-4" onClick={moveToProfile}>
             {userData ? (
-              <button className="text-specialWhite text-2xl">{userData.firstName}</button>
+              <h1 className="text-specialWhite text-2xl">{userData.firstName}</h1>
             ) : (
               <p>Ingenting å vise</p>
             )}
-          </div>
+          </button>
 
-          {/**Sidebar of contents containg the objectices  */}
-          <div className="bg-correctBlue flex flex-col items-center space-y-6 h-auto w-96 px-5 py-8 rounded-lg max-h-[400px] overflow-y-scroll scrollbar-hide">
-            {objectives.length > 0 ? (
-              objectives.map((objective) => (
-                <h1 key={objective.id} className="text-specialWhite h-12 w-full rounded-sm text-lg">{objective.id}</h1>
-              ))
-            ) : (
-              <p>No objectives found.</p>
-            )}
+          {/** Sidebar of contents containing the objectives */}
+          <div className="bg-correctBlue flex flex-col items-center space-y-6 h-[400px] w-96 px-5 py-8 rounded-lg relative">
+            <div className="overflow-y-scroll scrollbar-hide w-full flex-grow h-auto">
+              {objectives.length > 0 ? (
+                objectives.map((objective) => (
+                  <h1
+                    key={objective.id}
+                    className="text-specialWhite h-12 w-full rounded-sm text-lg mb-4"
+                  >
+                    {objective.id}
+                  </h1>
+                ))
+              ) : (
+                <p>No objectives found.</p>
+              )}
+            </div>
 
-            <button className="bg-specialWhite text-correctBlue text-lg h-12 w-full rounded-sm" onClick={handleToggleOverlayButtons}>
-              <p>Create</p>
-            </button>
+            <div className="absolute bottom-5 left-0 w-full px-5 pt-4">
+              <button
+                className="bg-specialWhite text-correctBlue text-lg h-14 w-full rounded-sm"
+                onClick={handleToggleOverlayButtons}
+              >
+                <p>Create</p>
+              </button>
+            </div>
           </div>
 
           {/* Sidebar */}
@@ -701,7 +713,7 @@ export default function Dashboard() {
                 onClick={handleAddSingleValue}
                 className="bg-coolBlue text-specialWhite h-10 w-full rounded-sm mb-4"
               >
-                Add Row
+                Add a new value
               </button>
 
               {/* Display List of Added Values */}
@@ -905,14 +917,14 @@ export default function Dashboard() {
                         // Render Rows Type
                         <div className="space-y-4">
                           {objective.rows.length >= 2 && (
-                            <div className="bg-textBlue p-4 rounded-lg">
-                              <div className="flex justify-between items-center bg-white p-2 rounded text-center font-bold mb-4">
+                            <div className="rounded-lg">
+                              <div className="flex justify-between items-center bg-textBlue p-2 rounded text-center font-bold mb-4">
                                 <span className="w-1/2 text-correctBlue">VALUE</span>
                                 <span className="w-1/2 text-correctBlue">EXPLANATION</span>
                               </div>
                               <div className="space-y-2">
                                 {(objective.rows[0]?.values ?? []).map((value, index) => (
-                                  <div key={index} className="flex justify-between bg-white p-2 rounded-lg items-center">
+                                  <div key={index} className="flex justify-between bg-textBlue p-2 rounded items-center">
                                     <span className="w-1/2 font-medium text-correctBlue text-center">{value}</span>
                                     <span className="w-1/2 text-correctBlue text-center">
                                       {objective.rows[1]?.values?.[index] ?? ''}
@@ -929,7 +941,7 @@ export default function Dashboard() {
                           <div className="space-y-2">
                             {objective.values.map((value, index) => (
                               <div key={index} className="flex justify-center items-center bg-textBlue p-2 rounded-sm">
-                                <span className="text-black text-lg text-center">{value}</span>
+                                <span className="text-black text-center">{value}</span>
                               </div>
                             ))}
                           </div>
@@ -954,28 +966,28 @@ export default function Dashboard() {
                               </>
                             ) : (
                               <>
-                              <div className='flex space-x-4 pr-8 pl-8'>
+                                <div className='flex space-x-4 pr-8 pl-8'>
                                   <button
-                                  
+
                                     className='bg-regretRed text-specialWhite h-10 w-full rounded-sm'
-                                    >
+                                  >
                                     Delete a value
                                   </button>
                                   <button
-                                  
+
                                     className='bg-boringGrey text-specialWhite h-10 w-full rounded-sm'
-                                    >
+                                  >
                                     X
                                   </button>
                                   <button
                                     onClick={() => handleToggleAddValue(objective.id)}
                                     className="bg-coolBlue text-specialWhite h-10 w-full rounded-sm"
-                                    >
+                                  >
                                     Add Value
                                   </button>
                                 </div>
                               </>
-                              
+
                             )}
                           </div>
                         </div>

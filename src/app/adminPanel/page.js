@@ -27,7 +27,6 @@ export default function Adminpage() {
                     const userInfo = userSnap.data();
 
                     const isAdmin = userInfo.superAdmin === true
-
                     //Ment for å sette dataen 
                     setUserData({
                         email: user.email,
@@ -35,8 +34,6 @@ export default function Adminpage() {
                         lastName: userInfo.lastName,
                         adminRights: isAdmin,
                     });
-
-
 
                     if (user.email === allowedEmail || isAdmin) {
                         setAuthorized(true);
@@ -51,7 +48,6 @@ export default function Adminpage() {
                     setLoading(false);
                     router.push('/loginn')
                 }
-
             } else {
                 setLoading(false);
                 router.push('/loginn');
@@ -106,53 +102,62 @@ export default function Adminpage() {
                         <button className="text-specialWhite text-lg h-12 w-full" onClick={moveSettings}>Innstillinger </button>
                     </div>
 
-                    {/* Second Row: Content Area */}
-          <div className="bg-correctBlue rounded-lg p-5 flex flex-col h-full">
-            <h2 className="text-center text-2xl mb-8">TEAM</h2>
-            <div className="bg-specialWhite flex-grow rounded-lg">
-                {/**Displayer alle brukere */}
-                <div className="grid grid-cols-5 gap-4 items-center h-16 px-10">
-                    <h1 className="text-black text-center">ETTERNAVN</h1>
-                    <h1 className="text-black text-center">NAVN</h1>
-                    <h1 className="text-black text-center">EMAIL</h1>
-                    <h1 className="text-black text-center">ADMIN</h1>
-                    <h1 className="text-black text-center">AKTIV</h1>
                 </div>
 
-                {users.length > 0 ? (
-                    <ul className="space-y-3 pr-5 pl-5">
-                        {users.map((user, index) => (
-                            <li key={index} className="grid grid-cols-5 gap-4 items-center border-correctBlue border-3 px-10 py-4 border">
-                                <div className="text-black text-center">
-                                    <p>{user.firstName}</p>
-                                </div>
+                <div className="bg-correctBlue p-8 rounded-lg shadow-lg pt-4 mb-6 min-h-[150px] h-auto overflow-y-auto">
 
-                                 <div className="text-black text-center">
-                                    <p>{user.lastName}</p>  
-                                </div>
+                    <div className="rounded-lg flex flex-col h-full">
+                        {/* Title */}
+                        <h2 className="text-center text-2xl pb-4">TEAM</h2>
 
-                                <div className="text-black text-center overflow-hidden overflow-ellipsis whitespace-nowrap">
-                                    <p>{user.email}</p>
-                                </div>
+                        {/* Fixed White Background Container */}
+                        <div className="bg-backgroundWhite rounded-lg p-4 relative h-full">
+                            {/* Header Row */}
+                            <div className="grid grid-cols-5 gap-1 items-center h-16 px-5">
+                                <h1 className="text-black text-center">NAVN</h1>
+                                <h1 className="text-black text-center">ETTERNAVN</h1>
+                                <h1 className="text-black text-center">EMAIL</h1>
+                                <h1 className="text-black text-center">ADMIN</h1>
+                                <h1 className="text-black text-center">AKTIV</h1>
+                            </div>
 
-                                <div className="text-black text-center">
-                                    <p>{user.adminRights ? 'TRUE' : 'FALSE'}</p>
-                                </div>
-                                
-                                <div className="text-black text-center">
-                                    <p>Nei</p>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                    ) : (
-                        <p className="text-black">No users found.</p>
-                    )}
-            </div>
-          </div>
+                            {/* Scrollable User List */}
+                            <div className="overflow-y-auto absolute top-[96px] bottom-4 left-4 right-4 rounded-lg p-2">
+                            {users.length > 0 ? (
+                                <ul className="space-y-3">
+                                    {users.map((user, index) => (
+                                        <li key={index} className="grid grid-cols-5 gap-4 items-center border-correctBlue border-3 px-10 py-4 border">
+                                            <div className="text-black text-center">
+                                                <p>{user.firstName}</p>
+                                            </div>
+
+                                            <div className="text-black text-center">
+                                                <p>{user.lastName}</p>
+                                            </div>
+
+                                            <div className="text-black text-center overflow-hidden overflow-ellipsis whitespace-nowrap">
+                                                <p>{user.email}</p>
+                                            </div>
+
+                                            <div className="text-black text-center">
+                                                <p>{user.adminRights ? 'TRUE' : 'FALSE'}</p>
+                                            </div>
+
+                                            <div className="text-black text-center">
+                                                <p>Nei</p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-black">No users found.</p>
+                            )}
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
