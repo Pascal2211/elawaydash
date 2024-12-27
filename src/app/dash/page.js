@@ -6,6 +6,7 @@ import { doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteField, array
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from 'react';
 import navbar from '../components/navbar';
+import Loading from '../components/loading';
 
 export default function Dashboard() {
   const [userData, setUserData] = useState(null);
@@ -494,11 +495,13 @@ export default function Dashboard() {
   }, [auth, router]);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <Loading/>
+    );
   }
 
-  const moveHome = () => { router.push('/') }
-  const moveTeam = () => { router.push('/') }
+  const moveHome = () => { router.push('/dash') }
+  const moveTeam = () => { router.push('/adminPanel') }
   const moveTask = () => { router.push('/') }
   const moveSettings = () => { router.push('/') }
   const moveToProfile = () => { router.push('/usrProfile') }
@@ -730,13 +733,25 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* Confirm Module Button */}
-              <button
-                onClick={handleSaveSingleValue}
-                className="bg-correctBlue text-specialWhite h-12 w-full rounded-sm mt-4"
-              >
-                Confirm Objective
-              </button>
+              
+              <div>
+                {/**Handle cancel button */}
+                <button
+                  onClick={() => setIsCreatingSingleValue(false)}
+                  className='bg-regretRed text-specialWhite h-12 w-1/2 rounded-sm '
+                >
+                  Cancel
+                </button>
+
+                {/* Confirm Module Button */}
+                <button
+                  onClick={handleSaveSingleValue}
+                  className="bg-correctBlue text-specialWhite h-12 w-1/2 rounded-sm mt-4"
+                >
+                  Confirm Objective
+                </button>
+
+              </div>
             </div>
           )}
 
@@ -788,6 +803,7 @@ export default function Dashboard() {
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
               <div className="text-center">
                 <div className='p-5'>
+                  {/***Create a single value module */}
                   <button
                     className="bg-correctBlue text-backgroundWhite text-lg h-12 w-48 rounded-sm"
                     onClick={handleToggleCreate}
@@ -796,6 +812,7 @@ export default function Dashboard() {
                   </button>
                 </div>
 
+                {/**Creating a ibjective the way my boss said i should make it like */}
                 <div className='p-5'>
                   <button
                     className="bg-correctBlue text-backgroundWhite text-lg h-12 w-48 rounded-sm"
@@ -804,6 +821,8 @@ export default function Dashboard() {
                     Create an objective
                   </button>
                 </div>
+
+                {/**Creating a module with rows */}
                 <div className='p-5'>
                   <button
                     className="bg-correctBlue text-backgroundWhite text-lg h-12 w-48 rounded-sm"
@@ -812,11 +831,13 @@ export default function Dashboard() {
                     Create a row
                   </button>
                 </div>
+
+                {/* Cancel motiojn */}
                 <div className='p-5'>
                   <button
-                    className='text-lg'
+                    className='bg-regretRed text-backgroundWhite text-lg h-12 w-48 rounded-sm'
                     onClick={handleBack}
-                  >x</button>
+                  >Cancel</button>
                 </div>
               </div>
             </div>
@@ -996,14 +1017,7 @@ export default function Dashboard() {
                       )}
 
                       {/* Display additional key-value pairs if needed */}
-                      {Object.entries(objective).map(([key, value]) =>
-                        key !== "id" && key !== "rows" && key !== "objectivesTwo" && key !== "module" && key !== "values" && (
-                          <div key={key} className="bg-textBlue p-4 mb-4 rounded-lg border border-gray-300 flex justify-center items-center">
-                            <strong className="text-black">{key}:</strong>
-                            <span className="text-black ml-2">{value}</span>
-                          </div>
-                        )
-                      )}
+
                     </>
                   )}
 

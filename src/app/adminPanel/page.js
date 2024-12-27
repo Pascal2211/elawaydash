@@ -4,13 +4,18 @@ import { useEffect, useState } from "react";
 import { auth, db } from "@/firebase/firebase";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { doc, getDoc, getDocs, collection } from "firebase/firestore";
+import { doc, getDoc, getDocs, collection, query, where, orderBy } from "firebase/firestore";
+import Loading from "../components/loading";
 
 export default function Adminpage() {
     const [loading, setLoading] = useState(true);
     const [authorized, setAuthorized] = useState(false);
-    const [userData, setUserData] = useState(null);
-    const [users, setUsers] = useState([]);
+    const [userData, setUserData] = useState(null); //
+    const [users, setUsers] = useState([]); //stores the users in a array and displays them
+    const [showPopup, setShowPopup] = useState(false); // State that shows the popup
+    const [selectedUser, setSelectedUser] = useState(null); //Tracks the user for popip
+    const [newUsers, setNewUsers] = useState([]);
+    const [viewingNewUsers, setViewingNewUsers] = useState(false);
     const router = useRouter();
     const auth = getAuth();
 
@@ -19,41 +24,41 @@ export default function Adminpage() {
 
     async function checkUserAuthorization() {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (userSnap.exists()) {
-                    const userInfo = userSnap.data();
-
-                    const isAdmin = userInfo.superAdmin === true
-                    //Ment for å sette dataen 
-                    setUserData({
-                        email: user.email,
-                        firstName: userInfo.firstName,
-                        lastName: userInfo.lastName,
-                        adminRights: isAdmin,
-                    });
-
-                    if (user.email === allowedEmail || isAdmin) {
-                        setAuthorized(true);
-                        await fetchAllUsers();
-
-                    } else {
-                        setAuthorized(false);
-                        router.push('/notAuthorized');
-                    }
-                } else {
-                    console.error("Ingen bruker i systemet");
-                    setLoading(false);
-                    router.push('/loginn')
-                }
-            } else {
+            if (!user) {
                 setLoading(false);
-                router.push('/loginn');
+                return router.push('/loginn');
             }
+    
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+    
+            if (!userSnap.exists()) {
+                console.error("User not found");
+                setLoading(false);
+                return router.push('/loginn');
+            }
+    
+            const userInfo = userSnap.data();
+            const isAdmin = userInfo.superAdmin === true;
+    
+            setUserData({
+                email: user.email,
+                firstName: userInfo.firstName,
+                lastName: userInfo.lastName,
+                adminRights: isAdmin,
+            });
+    
+            if (user.email === allowedEmail || isAdmin) {
+                setAuthorized(true);
+                await fetchAllUsers();
+            } else {
+                setAuthorized(false);
+                router.push('/notAuthorized');
+            }
+    
             setLoading(false);
         });
+    
         return () => unsubscribe();
     }
 
@@ -69,17 +74,37 @@ export default function Adminpage() {
         console.log("User Info:", usersList);
     }
 
+    // //Function to check if the user is new to eventually grant them 
+    // async function fetchNewUsers(){
+    //     const oneWeekAgo = new Date();
+    //     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    //     const q = query(
+    //         collection(db, "users"),
+    //         where("createdAt", ">", oneWeekAgo),
+    //         orderBy("createdAt", "desc")
+    //     );
+
+    //     const querySnapShot = await getDocs(q);
+    //     const newUserList = 
+    // }
+
+
     useEffect(() => {
         const unsubscribe = checkUserAuthorization();
         return () => unsubscribe;
     }, [router]);
 
 
-    const moveHome = () => { router.push('/') }
+    const moveHome = () => { router.push('/dash') }
     const moveTeam = () => { router.push('/adminPanel') }
     const moveTask = () => { router.push('/tasks') }
     const moveSettings = () => { router.push('settingsk') }
     const moveToProfile = () => { router.push('/usrProfile') }
+
+    if(loading){
+        return <Loading/>
+    }
 
 
     return (
@@ -88,10 +113,15 @@ export default function Adminpage() {
                 <div className="flex flex-col space-y-6">
                     <div className="bg-kindaBlue flex items-center justify-center h-20 w-96 rounded-lg p-4">
                         {userData ? (
-                            <button className="text-specialWhite text-2xl">{userData.firstName}</button>
+                            <button onClick={moveToProfile} className="text-specialWhite text-2xl">{userData.firstName}</button>
                         ) : (
                             <p>Ingenting å vise</p>
                         )}
+                    </div>
+                    
+                    {/* Sidebar for new users */}
+                    <div className="bg-correctBlue flex flex-col items-center space-y-6 w-96 h-auto rounded-lg px-5">
+                        <button>New users</button>
                     </div>
 
                     {/* Sidebar */}
