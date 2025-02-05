@@ -25,7 +25,6 @@ export default function Dashboard() {
 
   const [newObjectiveName, setNewObjectiveName] = useState('');
   const [newSingleValue, setNewSingleValue] = useState(''); // For single value input
-  const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
   const [newSingleValueKey, setNewSingleValueKey] = useState(''); // For single value key
 
@@ -328,21 +327,36 @@ export default function Dashboard() {
     }
   };
 
-  // const handleAddSingleValue = () => {
-  //   if (newSingleValueKey.trim() && newSingleValue.trim()) {
-  //     // Add the new key-value pair to the objectives array
-  //     setSingleValues((prevObjectives) => [
-  //       ...prevObjectives,
-  //       { key: newSingleValueKey, value: newSingleValue }
-  //     ]);
+  const handleDeleteSingleValue = async (objectiveId, valueToDelete) => {
+    try {
+      // Get the reference to the specific objective
+      const objectiveRef = doc(db, "objectives", objectiveId);
 
-  //     // Clear the input fields after adding the value
-  //     setNewSingleValueKey("");
-  //     setNewSingleValue("");
-  //   } else {
-  //     alert("Please provide both a field name and a value.");
-  //   }
-  // };
+      // Update Firestore to remove the specific value from the array
+      await updateDoc(objectiveRef, {
+        values: arrayUnion(valueToDelete), // Remove the value
+      });
+
+      // Update the local state to reflect the deletion
+      setObjectives((prevObjectives) =>
+        prevObjectives.map((objective) =>
+          objective.id === objectiveId
+            ? {
+              ...objective,
+              values: objective.values.filter((value) => value !== valueToDelete),
+            }
+            : objective
+        )
+      );
+
+      alert(`Value "${valueToDelete}" has been deleted successfully.`);
+    } catch (error) {
+      console.error("Error deleting single value:", error);
+      alert("An error occurred while deleting the value.");
+    }
+  }
+
+
 
   const handleAddSingleValue = () => {
     if (newSingleValue.trim()) {
@@ -496,7 +510,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <Loading/>
+      <Loading />
     );
   }
 
@@ -733,7 +747,7 @@ export default function Dashboard() {
                 </div>
               )}
 
-              
+
               <div>
                 {/**Handle cancel button */}
                 <button
@@ -963,6 +977,14 @@ export default function Dashboard() {
                             {objective.values.map((value, index) => (
                               <div key={index} className="flex justify-center items-center bg-textBlue p-2 rounded-sm">
                                 <span className="text-black text-center">{value}</span>
+                                {deleteMode[objective.id] && (
+                                  <button
+                                    onClick={() => handleDeleteSingleValue(objective.id, value)}
+                                    className='ml-4 text-regretRed'
+                                    title='Delete this value'>
+
+                                    Trash</button>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -989,16 +1011,24 @@ export default function Dashboard() {
                               <>
                                 <div className='flex space-x-4 pr-8 pl-8'>
                                   <button
-
-                                    className='bg-regretRed text-specialWhite h-10 w-full rounded-sm'
+                                    onClick={() =>
+                                      setDeleteMode((prev) => ({
+                                        ...prev,
+                                        [objective.id]: !prev[objective.id],
+                                      }))
+                                    }
+                                    className={`${deleteMode[objective.id]
+                                        ? "bg-boringGrey"
+                                        : "bg-regretRed"
+                                      } text-specialWhite h-10 w-full rounded-sm`}
                                   >
-                                    Delete a value
+                                    {deleteMode[objective.id] ? "Cancel Delete" : "Delete a Value"}
                                   </button>
                                   <button
 
                                     className='bg-boringGrey text-specialWhite h-10 w-full rounded-sm'
                                   >
-                                    X
+                                    Edit Value
                                   </button>
                                   <button
                                     onClick={() => handleToggleAddValue(objective.id)}
